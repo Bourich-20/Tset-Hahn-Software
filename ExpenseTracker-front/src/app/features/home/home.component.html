@@ -1,0 +1,21 @@
+<div class="main-layout flex flex-col h-screen">
+  <header class="header flex justify-between items-center p-4 bg-[#00407D] text-white w-full">
+    <div class="profile flex items-center">
+      <img [src]="user.avatar" alt="User Avatar" class="profile-image w-12 h-12 rounded-full mr-4" />
+      <div class="user-info">
+        <p class="user-name font-semibold">{{ user.firstName }} {{ user.lastName }}</p>
+        <p class="user-email text-sm">{{ user.email }}</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex flex-1">
+    <aside >
+      <app-sidebar></app-sidebar>
+    </aside>
+
+    <main class="content flex-1 p-6 overflow-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

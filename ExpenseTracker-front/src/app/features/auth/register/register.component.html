@@ -1,0 +1,82 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+  <form
+    class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 w-full max-w-md"
+    (ngSubmit)="onRegister()"
+    #registerForm="ngForm"
+  >
+    <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">Register</h2>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2">First Name</label>
+      <input
+        type="text"
+        [(ngModel)]="firstName"
+        name="firstName"
+        required
+        minlength="2"
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2">Last Name</label>
+      <input
+        type="text"
+        [(ngModel)]="lastName"
+        name="lastName"
+        required
+        minlength="2"
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="email"
+        required
+        email
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
+      <input
+        type="password"
+        [(ngModel)]="password"
+        name="password"
+        required
+        minlength="6"
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      />
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
+      <input
+        type="password"
+        [(ngModel)]="confirmPassword"
+        name="confirmPassword"
+        required
+        [class.border-red-500]="password !== confirmPassword && confirmPassword"
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+      />
+      <span *ngIf="password !== confirmPassword && confirmPassword" class="text-red-500 text-sm">
+        Passwords do not match.
+      </span>
+    </div>
+
+    <div *ngIf="errorMessage" class="text-red-500 text-sm mb-4">{{ errorMessage }}</div>
+
+    <button
+      type="submit"
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      [disabled]="registerForm.invalid || password !== confirmPassword"
+    >
+      Register
+    </button>
+  </form>
+</div>

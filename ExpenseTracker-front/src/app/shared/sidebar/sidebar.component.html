@@ -1,0 +1,45 @@
+<div class="m-2 h-full">
+  <div class="md:hidden p-4 absolute top-0 left-0 z-50 text-[#00407D]">
+    <button (click)="toggleSidebar()" class="h-6 w-6">
+      <span *ngIf="!isOpened">☰</span>
+      <span *ngIf="isOpened">✕</span>
+    </button>
+  </div>
+
+  <div
+    class="flex flex-col bg-[#E49F13] h-full transition-width duration-300"
+    [class.w-16]="isSidebarCollapsed"
+    [class.w-64]="!isSidebarCollapsed"
+    [class.hidden]="!isOpened && !isSidebarCollapsed && !isOpened"
+    [class.md:flex]="true"
+  >
+    <div class="flex items-center justify-between p-4">
+      <button
+        (click)="toggleDesktopSidebar()"
+        class="text-white text-lg font-bold flex items-center gap-1"
+      >
+        <span *ngIf="!isSidebarCollapsed">&lt;&lt;</span>
+        <span *ngIf="isSidebarCollapsed">&gt;&gt;</span>
+      </button>
+    </div>
+
+    <ul class="flex flex-col justify-between h-full">
+      <div>
+        <li
+          *ngFor="let item of navItems; let i = index"
+          (click)="handleItemClick(i)"
+          [routerLink]="item.route"
+          class="flex justify-start items-center gap-6 p-2 cursor-pointer"
+          [class.bg-white]="activeIndex === i"
+          [class.rounded-l-3xl]="activeIndex === i"
+          [class.text-bold]="activeIndex === i"
+          [class.w-[235px]="!isSidebarCollapsed"
+          [class.w-16]="isSidebarCollapsed"
+        >
+          <span>{{ item.icon }}</span>
+          <span *ngIf="!isSidebarCollapsed">{{ item.name }}</span>
+        </li>
+      </div>
+    </ul>
+  </div>
+</div>
