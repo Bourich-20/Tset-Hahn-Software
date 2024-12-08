@@ -264,3 +264,4 @@ C:\Users\soufi\OneDrive\Bureau\Hahn Software Test\ExpenseTrackerAPI\obj\Debug\ne
 C:\Users\soufi\OneDrive\Bureau\Hahn Software Test\ExpenseTrackerAPI\obj\Debug\net8.0\ExpenseTrackerAPI.pdb
 C:\Users\soufi\OneDrive\Bureau\Hahn Software Test\ExpenseTrackerAPI\obj\Debug\net8.0\ExpenseTrackerAPI.genruntimeconfig.cache
 C:\Users\soufi\OneDrive\Bureau\Hahn Software Test\ExpenseTrackerAPI\obj\Debug\net8.0\ref\ExpenseTrackerAPI.dll
+C:\Users\soufi\OneDrive\Bureau\Hahn Software Test\ExpenseTrackerAPI\obj\Debug\net8.0\ExpenseTrackerAPI.sourcelink.json

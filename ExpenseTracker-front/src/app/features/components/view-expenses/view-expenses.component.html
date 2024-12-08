@@ -1,1 +1,110 @@
-<p>view-expenses works!</p>
+<div class="max-w-full mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
+    <!-- Expense Search Form -->
+    <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
+      <div class="flex justify-between items-center mb-6 space-x-4">
+        <!-- Category Selector -->
+        <div class="w-1/3">
+          <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+          <select
+            id="category"
+            formControlName="category"
+            class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+          </select>
+          <div *ngIf="expenseForm.get('category')?.invalid && expenseForm.get('category')?.touched" class="text-red-500 text-sm">
+            Category is required.
+          </div>
+        </div>
+  
+        <!-- Start Date Picker -->
+        <div class="w-1/3">
+          <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
+          <input 
+            id="startDate" 
+            formControlName="startDate" 
+            type="date" 
+            class="mt-1 p-2 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <div *ngIf="expenseForm.get('startDate')?.invalid && expenseForm.get('startDate')?.touched" class="text-red-500 text-sm">
+            Start Date is required.
+          </div>
+        </div>
+  
+        <!-- Submit Button -->
+        <div class="w-1/3">
+          <button 
+            type="submit" 
+            class="w-full py-3 text-white bg-orange-500 hover:bg-orange-600 rounded-lg"
+            [disabled]="expenseForm.invalid"
+          >
+            Search Expenses
+          </button>
+        </div>
+      </div>
+    </form>
+  
+    <!-- Expenses Table -->
+    <div class="mt-8" *ngIf="expenses.length">
+      <h3 class="text-xl font-semibold text-blue-700">Expenses</h3>
+      <table class="min-w-full mt-4 bg-white shadow-md rounded-lg">
+        <thead>
+          <tr class="bg-gray-100 border-b">
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Description</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Category</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Amount</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Date</th>
+            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let expense of expenses" class="border-b">
+            <td class="px-4 py-2 text-gray-700">{{ expense.description || 'No description' }}</td>
+            <td class="px-4 py-2 text-gray-700">{{ expense.category || 'No category' }}</td>
+            <td class="px-4 py-2 text-gray-700">{{ expense.amount | currency }}</td>
+            <td class="px-4 py-2 text-gray-700">{{ expense.date | date:'shortDate' }}</td>
+            <td class="px-4 py-2">
+              <button 
+                (click)="deleteExpense(expense.id)"
+                class="px-4 py-2 text-white bg-red-500 hover:bg-red-600 rounded-lg"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <!-- Pagination -->
+      <div class="flex justify-center mt-6">
+        <!-- Previous Page Button -->
+        <button 
+          *ngIf="currentPage > 1"
+          (click)="onPageChange(currentPage - 1)" 
+          class="px-4 py-2 mx-1 text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+        >
+          Previous
+        </button>
+  
+        <!-- Page Number Buttons -->
+        <button 
+          *ngFor="let page of pages" 
+          (click)="onPageChange(page)" 
+          [class.bg-blue-700]="currentPage === page" 
+          class="px-4 py-2 mx-1 text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+        >
+          {{ page }}
+        </button>
+  
+        <!-- Next Page Button -->
+        <button 
+          *ngIf="currentPage < totalPages"
+          (click)="onPageChange(currentPage + 1)" 
+          class="px-4 py-2 mx-1 text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+  

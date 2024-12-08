@@ -7,8 +7,8 @@ namespace ExpenseTrackerAPI.Repositories
     public interface IExpenseRepository
     {
         Task<Expense> AddExpenseAsync(Expense expense);
-        Task<List<Expense>> GetExpensesAsync(string userId);
         Task DeleteExpenseAsync(int id, string userId);
+         IQueryable<Expense> GetExpensesQueryable(string userId); 
         Task<Budget?> GetBudgetWithExpensesAsync(int budgetId);
     }
 }

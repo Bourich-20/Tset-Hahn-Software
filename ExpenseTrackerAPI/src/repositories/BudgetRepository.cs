@@ -16,46 +16,42 @@ namespace ExpenseTrackerAPI.Repositories
             _context = context;
         }
 
-        // Récupérer le budget actif d'un utilisateur
         public async Task<Budget?> GetActiveBudgetForUserAsync(string userId)
         {
             return await _context.Budgets
                 .FirstOrDefaultAsync(b => b.UserId == userId && b.StartDate <= DateTime.UtcNow && b.EndDate >= DateTime.UtcNow);
         }
 
-        // Ajouter un budget
-        public async Task<ResponseBudgetRequest> AddBudgetAsync(AddBudgetRequest budgetRequest)
-        {
-            var budget = new Budget
-            {
-                Amount = budgetRequest.Amount,
-                StartDate = budgetRequest.StartDate,
-                EndDate = budgetRequest.EndDate
-            };
+        public async Task<ResponseBudgetRequest> AddBudgetAsync(AddBudgetRequest budgetRequest, string userId)
+{
+    var budget = new Budget
+    {
+        Amount = budgetRequest.Amount,
+        StartDate = budgetRequest.StartDate,
+        EndDate = budgetRequest.EndDate,
+        UserId = userId 
+    };
 
-            _context.Budgets.Add(budget);
-            await _context.SaveChangesAsync();
+    _context.Budgets.Add(budget);
+    await _context.SaveChangesAsync();
 
-            return new ResponseBudgetRequest
-            {
-                Id = budget.Id,
-                Amount = budget.Amount,
-                StartDate = budget.StartDate,
-                EndDate = budget.EndDate,
-                Message = "Budget added successfully"
-            };
-        }
+    return new ResponseBudgetRequest
+    {
+        Id = budget.Id,
+        Amount = budget.Amount,
+        StartDate = budget.StartDate,
+        EndDate = budget.EndDate,
+    };
+}
 
-        // Récupérer un budget par son ID
     public async Task<Budget?> GetBudgetByIdAsync(int budgetId)
 {
     return await _context.Budgets.FindAsync(budgetId);
 }
 
-        // Mettre à jour un budget
-public async Task<ResponseBudgetRequest> UpdateBudgetAsync(EditBudgetRequest budgetRequest)
+public async Task<ResponseBudgetRequest> UpdateBudgetAsync(int budgetId,EditBudgetRequest budgetRequest)
 {
-    var budget = await _context.Budgets.FindAsync(budgetRequest.Id);
+    var budget = await _context.Budgets.FindAsync(budgetId);
     if (budget == null)
     {
         return new ResponseBudgetRequest { Message = "Budget not found" };
@@ -79,7 +75,6 @@ public async Task<ResponseBudgetRequest> UpdateBudgetAsync(EditBudgetRequest bud
 }
 
 
-        // Supprimer un budget
         public async Task<string> DeleteBudgetAsync(int budgetId)
         {
             var budget = await _context.Budgets.FindAsync(budgetId);
@@ -92,6 +87,13 @@ public async Task<ResponseBudgetRequest> UpdateBudgetAsync(EditBudgetRequest bud
             await _context.SaveChangesAsync();
 
             return "Budget deleted successfully";
+        }
+            public async Task<List<Budget>> GetBudgetsByUserIdAsync(string userId)
+        {
+            return await _context.Budgets
+                .Where(b => b.UserId == userId) 
+                .Include(b => b.Expenses)
+                .ToListAsync(); 
         }
     }
 }

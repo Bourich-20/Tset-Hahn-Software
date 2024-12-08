@@ -1,17 +1,17 @@
-//using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ExpenseTrackerAPI.DTO;
 using ExpenseTrackerAPI.Services;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ExpenseTrackerAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize] // L'authentification est obligatoire pour toutes les méthodes
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseService _expenseService;
@@ -21,56 +21,62 @@ namespace ExpenseTrackerAPI.Controllers
             _expenseService = expenseService ?? throw new ArgumentNullException(nameof(expenseService));
         }
 
-       [HttpPost]
-public async Task<IActionResult> AddExpense([FromBody] ExpenseDTO expenseDTO)
-{
-  var userIdAlternative = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
-
-    if (string.IsNullOrEmpty(userIdAlternative))
-    {
-        return Unauthorized(new { Message = "User not authorized." });
-    }
-
-    try
-    {
-        var result = await _expenseService.AddExpenseAsync(expenseDTO, "1");
-        return Ok(new { Message = result });
-    }
-    catch (InvalidOperationException ex)
-    {
-        return BadRequest(new { Message = ex.Message });
-    }
-}
-
-
-        [HttpGet][HttpGet]
-        public async Task<IActionResult> GetExpenses()
+        // Ajouter une dépense
+        [HttpPost]
+        public async Task<IActionResult> AddExpense([FromBody] ExpenseDTO expenseDTO)
         {
             try
             {
-                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value; // Corrected to extract userId from claims
+                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(new { Message = "User not authorized." });
                 }
 
-                var expenses = await _expenseService.GetExpensesAsync(userId);
-                return Ok(expenses);
+                var result = await _expenseService.AddExpenseAsync(expenseDTO, userId);
+                return Ok(new { Message = "Expense added successfully.", Data = result });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(new { Message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
         }
 
-        // Delete an expense
+      [HttpGet]
+        public async Task<IActionResult> GetExpenses([FromQuery] ExpenseRequestDTO requestDTO)
+        {
+            try
+            {
+                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { Message = "User not authorized." });
+                }
+
+                var expenses = await _expenseService.GetExpensesAsync(requestDTO, userId);
+
+                return Ok(new { Message = "Expenses retrieved successfully.", Data = expenses });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
+        }
+
+        // Supprimer une dépense
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteExpense(int id)
         {
             try
             {
-                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value; // Corrected to extract userId from claims
+                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(new { Message = "User not authorized." });
@@ -83,6 +89,33 @@ public async Task<IActionResult> AddExpense([FromBody] ExpenseDTO expenseDTO)
             {
                 return NotFound(new { Message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
+        }
+
+         [HttpGet("category-amounts")]
+        public async Task<IActionResult> GetExpensesCategoryAmounts([FromQuery] ExpenseRequestCategoryAmountDTO requestDTO)
+        {
+            try
+            {
+                var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new { Message = "User not authorized." });
+                }
+
+                var expenses = await _expenseService.GetExpensesCategoryAmountsAsync(requestDTO, userId);
+
+                return Ok(new { Message = "Expenses by category retrieved successfully.", Data = expenses });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred.", Details = ex.Message });
+            }
         }
     }
+    
 }

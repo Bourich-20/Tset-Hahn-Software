@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;  // Make sure to add this using directive
 using ExpenseTrackerAPI.DTO;
 using ExpenseTrackerAPI.Models;
 using ExpenseTrackerAPI.Repositories;
@@ -12,31 +13,27 @@ namespace ExpenseTrackerAPI.Services
     {
         private readonly IExpenseRepository _expenseRepository;
         private readonly IBudgetRepository _budgetRepository;
-       public ExpenseService(IExpenseRepository expenseRepository, IBudgetRepository budgetRepository)
-{
-    _expenseRepository = expenseRepository ?? throw new ArgumentNullException(nameof(expenseRepository));
-    _budgetRepository = budgetRepository ?? throw new ArgumentNullException(nameof(budgetRepository));
-}
 
-         public async Task<string> AddExpenseAsync(ExpenseDTO expenseDTO, string userId)
+        public ExpenseService(IExpenseRepository expenseRepository, IBudgetRepository budgetRepository)
         {
-            // Récupérer le budget actif pour l'utilisateur
+            _expenseRepository = expenseRepository ?? throw new ArgumentNullException(nameof(expenseRepository));
+            _budgetRepository = budgetRepository ?? throw new ArgumentNullException(nameof(budgetRepository));
+        }
+
+        public async Task<string> AddExpenseAsync(ExpenseDTO expenseDTO, string userId)
+        {
             var budget = await _budgetRepository.GetActiveBudgetForUserAsync(userId);
 
             if (budget == null)
                 throw new InvalidOperationException("Budget not found for the user.");
 
-            // Calculer les dépenses totales actuelles
             decimal totalExpenses = budget.Expenses.Sum(e => e.Amount);
 
-            // Vérifier si l'ajout de la dépense dépasse le budget
             if (totalExpenses + expenseDTO.Amount > budget.Amount)
             {
-                // Envoyer une alerte
                 throw new InvalidOperationException("Total expenses exceed the monthly budget.");
             }
 
-            // Créer la nouvelle dépense
             var expense = new Expense
             {
                 Amount = expenseDTO.Amount,
@@ -47,29 +44,90 @@ namespace ExpenseTrackerAPI.Services
                 Date = DateTime.UtcNow
             };
 
-            // Ajouter la dépense dans la base de données
             await _expenseRepository.AddExpenseAsync(expense);
 
             return "Expense added successfully.";
         }
-        public async Task<List<ExpenseDTO>> GetExpensesAsync(string userId)
-        {
-            // Retrieve expenses for the specified user from the repository
-            var expenses = await _expenseRepository.GetExpensesAsync(userId);
 
-            // Map the expenses to DTOs
-            return expenses.Select(e => new ExpenseDTO
-            {
-                Amount = e.Amount,
-                Category = e.Category,
-                BudgetId = e.BudgetId
-            }).ToList();
-        }
+public async Task<ExpensePaginationResponseDTO> GetExpensesAsync(ExpenseRequestDTO requestDTO, string userId)
+{
+    var query = _expenseRepository.GetExpensesQueryable(userId);
+
+    if (!string.IsNullOrEmpty(requestDTO.Category))
+    {
+        query = query.Where(e => e.Category != null && e.Category.Contains(requestDTO.Category));
+    }
+
+    if (requestDTO.Date.HasValue)
+    {
+        query = query.Where(e => e.Date.Date == requestDTO.Date.Value.Date);
+    }
+
+    var totalItems = await query.CountAsync();
+    var totalPages = (int)Math.Ceiling((double)totalItems / requestDTO.PageSize);
+
+    var expenses = await query
+        .Skip((requestDTO.PageNumber - 1) * requestDTO.PageSize)
+        .Take(requestDTO.PageSize)
+        .ToListAsync();
+
+    var expenseResponse = expenses.Select(e => new ExpenseResponseDTO
+    {
+        Amount = e.Amount,
+        Category = e.Category,
+        Description = e.Description,
+        Date = e.Date,
+        Id = e.Id
+    }).ToList();
+
+    return new ExpensePaginationResponseDTO
+    {
+        Expenses = expenseResponse,
+        TotalItems = totalItems,
+        TotalPages = totalPages,
+        CurrentPage = requestDTO.PageNumber,
+        HasNextPage = requestDTO.PageNumber < totalPages,
+        HasPreviousPage = requestDTO.PageNumber > 1
+    };
+}
 
         public async Task DeleteExpenseAsync(int id, string userId)
         {
-            // Use the repository to delete the expense
             await _expenseRepository.DeleteExpenseAsync(id, userId);
         }
+
+public async Task<IEnumerable<ExpenseCategoryAmountDTO>> GetExpensesCategoryAmountsAsync(ExpenseRequestCategoryAmountDTO requestDTO, string userId)
+{
+    var query = _expenseRepository.GetExpensesQueryable(userId);
+
+    if (!string.IsNullOrEmpty(requestDTO.Category))
+    {
+        query = query.Where(e => e.Category == requestDTO.Category);
+    }
+
+    if (requestDTO.StartDate.HasValue)
+    {
+        query = query.Where(e => e.Date >= requestDTO.StartDate.Value);
+    }
+
+    if (requestDTO.EndDate.HasValue)
+    {
+        query = query.Where(e => e.Date <= requestDTO.EndDate.Value);
+    }
+
+    var result = await query
+        .Select(e => new ExpenseCategoryAmountDTO
+        {
+            Category = e.Category,
+            TotalAmount = e.Amount ,
+            Date =  e.Date
+        })
+        .ToListAsync();
+
+    return result;
+}
+
+
+
     }
 }

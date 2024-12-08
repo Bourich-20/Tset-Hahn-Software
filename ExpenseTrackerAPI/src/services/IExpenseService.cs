@@ -10,8 +10,9 @@ namespace ExpenseTrackerAPI.Services
     {
         Task<string> AddExpenseAsync(ExpenseDTO expenseDTO, string userId);
 
-        Task<List<ExpenseDTO>> GetExpensesAsync(string userId);
+    Task<ExpensePaginationResponseDTO> GetExpensesAsync(ExpenseRequestDTO requestDTO, string userId);
 
         Task DeleteExpenseAsync(int id, string userId);
+        Task<IEnumerable<ExpenseCategoryAmountDTO>> GetExpensesCategoryAmountsAsync(ExpenseRequestCategoryAmountDTO requestDTO, string userId);
     }
 }

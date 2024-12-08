@@ -23,11 +23,9 @@ namespace ExpenseTrackerAPI.Repositories
             return expense;
         }
 
-        public async Task<List<Expense>> GetExpensesAsync(string userId)
+   public IQueryable<Expense> GetExpensesQueryable(string userId)
         {
-            return await _context.Expenses
-                                 .Where(e => e.UserId == userId)
-                                 .ToListAsync();
+            return _context.Expenses.Where(e => e.UserId == userId);
         }
 
         public async Task DeleteExpenseAsync(int id, string userId)
@@ -43,7 +41,6 @@ namespace ExpenseTrackerAPI.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // Implementation of method to get a budget with its associated expenses
     public async Task<Budget?> GetBudgetWithExpensesAsync(int budgetId)
 {
     return await _context.Budgets

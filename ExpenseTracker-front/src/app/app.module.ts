@@ -5,6 +5,8 @@ import { AuthModule } from '../app/features/auth/auth.module';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { SharedModule } from './shared/shared.module';
 import { ReactiveFormsModule } from '@angular/forms';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
+import { ToastrModule } from 'ngx-toastr'; 
 
 import { AppComponent } from './app.component'; 
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
@@ -14,7 +16,7 @@ import { BudgetProgressComponent } from '../app/features/components/budget-progr
 import { SettingsComponent } from '../app/features/components/settings/settings.component'; 
 import { CommonModule } from '@angular/common';
 import { AuthInterceptor } from '../app/features/auth/auth.interceptor';
-
+import { BaseChartDirective } from 'ng2-charts';
 @NgModule({
   imports: [
     BrowserModule,
@@ -28,7 +30,10 @@ import { AuthInterceptor } from '../app/features/auth/auth.interceptor';
     AddExpenseComponent,  
     ViewExpensesComponent, 
     BudgetProgressComponent, 
-    SettingsComponent  
+    SettingsComponent  ,
+    BaseChartDirective,
+    BrowserAnimationsModule, 
+    ToastrModule.forRoot()  
   ],
   providers: [
     {

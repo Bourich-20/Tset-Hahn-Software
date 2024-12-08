@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Security.Claims;
 using ExpenseTrackerAPI.Data;
 using ExpenseTrackerAPI.Repositories;
 using ExpenseTrackerAPI.Services;
@@ -11,10 +12,10 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ajouter les services nécessaires pour l'application
+// Ajouter les services
 builder.Services.AddControllers();
 
-// Configurer Swagger pour l'API
+// Configurer Swagger pour la documentation
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ExpenseTrackerAPI", Version = "v1" });
@@ -42,11 +43,11 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Récupérer les paramètres de la clé secrète et de la configuration du JWT
+// Récupération et validation des paramètres JWT
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
 if (string.IsNullOrEmpty(secretKey))
 {
-    throw new InvalidOperationException("The JwtSettings:SecretKey is not configured.");
+    throw new InvalidOperationException("La clé secrète JwtSettings:SecretKey est manquante.");
 }
 var jwtKey = Encoding.UTF8.GetBytes(secretKey);
 
@@ -65,7 +66,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
         };
 
-        // Ajout d'événements pour diagnostiquer les problèmes JWT
+        // Gestion des événements JWT
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -74,6 +75,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (string.IsNullOrEmpty(token))
                 {
                     Console.WriteLine("Token non fourni ou mal formaté dans l'en-tête Authorization.");
+                }
+                else
+                {
+                    Console.WriteLine($"Token reçu : {token}");
                 }
                 return Task.CompletedTask;
             },
@@ -85,27 +90,52 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnTokenValidated = context =>
             {
                 Console.WriteLine("Token JWT validé avec succès.");
+
+                var claimsPrincipal = context.Principal;
+                if (claimsPrincipal != null)
+                {
+                    Console.WriteLine("Liste des revendications (claims) :");
+                    foreach (var claim in claimsPrincipal.Claims)
+                    {
+                        Console.WriteLine($"Type : {claim.Type}, Valeur : {claim.Value}");
+                    }
+
+                    var userIdClaim = claimsPrincipal.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier);
+                    if (userIdClaim != null)
+                    {
+                        Console.WriteLine($"UUID (userId) récupéré : {userIdClaim.Value}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Aucun UUID trouvé dans les revendications.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Le principal (utilisateur associé au token) est nul.");
+                }
+
                 return Task.CompletedTask;
             }
         };
     });
 
-// Configuration de la chaîne de connexion et du DbContext (MySQL dans cet exemple)
+// Configurer la connexion à la base de données
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ExpenseTrackerDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 30))));
 
-// Enregistrement des services nécessaires
+// Ajouter les services et les repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<PasswordHasher<User>>(); // Gestion des mots de passe
-builder.Services.AddScoped<JwtService>();          // Service pour JWT
+builder.Services.AddScoped<PasswordHasher<User>>();
+builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 
-// Configuration de CORS pour permettre l'accès depuis des origines spécifiques
+// Configurer les politiques CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policyBuilder =>
@@ -118,7 +148,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Utilisation de Swagger pour la documentation de l'API en mode développement
+// Configurer Swagger en mode développement
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -129,13 +159,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // Configurer les middlewares
-app.UseHttpsRedirection();  // Redirection vers HTTPS
-app.UseCors("AllowAll");    // Appliquer la politique CORS
-app.UseAuthentication();    // Authentification JWT
-app.UseAuthorization();     // Autorisation pour les utilisateurs authentifiés
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Mapper les contrôleurs
 app.MapControllers();
 
-// Démarrer l'application
 app.Run();

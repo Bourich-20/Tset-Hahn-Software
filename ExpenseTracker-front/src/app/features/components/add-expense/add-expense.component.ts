@@ -38,7 +38,7 @@ export class AddExpenseComponent {
     this.expenseService.addExpense(expenseData).subscribe({
       next: (response) => {
         console.log('Expense added:', response);
-        this.router.navigate(['/expenses']);
+        this.router.navigate(['/home/view-expenses']);
       },
       error: (err) => {
         console.error('Error adding expense:', err);

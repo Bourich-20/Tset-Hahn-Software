@@ -16,11 +16,16 @@ export class SidebarComponent {
   isOpened = false; 
   isSidebarCollapsed = false; 
   activeIndex = 0; 
+  ngOnInit(): void {
+    const defaultRoute = this.navItems[this.activeIndex].route;
+    this.router.navigate([defaultRoute]);
+  }
   constructor(private router: Router) {} 
   navItems = [
+    { name: 'Budget Progress', route: '/home/budget-progress', icon: '📊' },
+    { name: 'View Budgets', route: '/home/budgets', icon: '💰' }, 
     { name: 'Add Expense', route: '/home/add-expense', icon: '➕' },
     { name: 'View Expenses', route: '/home/view-expenses', icon: '📄' },
-    { name: 'Budget Progress', route: '/home/budget-progress', icon: '📊' },
     { name: 'Settings', route: '/home/settings', icon: '⚙️' },
   ];
 

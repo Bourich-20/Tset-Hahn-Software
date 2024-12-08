@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class AuthService {
   private apiUrl = 'http://localhost:5062/api/User';
-  private token: string | null = null; 
+  private tokenKey = 'token';  
 
   constructor(private http: HttpClient) {}
 
@@ -16,17 +16,22 @@ export class AuthService {
   }
 
   setToken(token: string) {
-    this.token = token;
+    localStorage.setItem(this.tokenKey, token);
   }
 
   getToken(): string | null {
-    return this.token;
+    return localStorage.getItem(this.tokenKey);  
   }
 
   isAuthenticated(): boolean {
-    return !!this.token;
+    return !!this.getToken();  
   }
+
   register(user: { email: string; firstName: string; lastName: string; password: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, user);
+  }
+
+  logout() {
+    localStorage.removeItem(this.tokenKey);  
   }
 }

@@ -3,14 +3,15 @@ using ExpenseTrackerAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-//using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 
 namespace ExpenseTrackerAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class BudgetController : ControllerBase
     {
         private readonly IBudgetService _budgetService;
@@ -28,9 +29,16 @@ public async Task<IActionResult> AddBudget([FromBody] AddBudgetRequest budgetReq
         return BadRequest("Invalid budget data.");
     }
 
+    var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+    if (string.IsNullOrEmpty(userId))
+    {
+        return BadRequest("User ID is missing.");
+    }
+
     try
     {
-        var result = await _budgetService.AddBudgetAsync(budgetRequest);
+        var result = await _budgetService.AddBudgetAsync(budgetRequest, userId);
         return Ok(result);
     }
     catch (InvalidOperationException ex)
@@ -54,7 +62,7 @@ public async Task<IActionResult> AddBudget([FromBody] AddBudgetRequest budgetReq
 
             try
             {
-                var result = await _budgetService.UpdateBudgetAsync(budgetId, budgetRequest);
+                var result = await _budgetService.UpdateBudgetAsync(budgetId,budgetRequest);
                 if (result == null)
                 {
                     return NotFound(new { Message = "Budget not found." });
@@ -114,6 +122,25 @@ public async Task<IActionResult> AddBudget([FromBody] AddBudgetRequest budgetReq
             catch (InvalidOperationException ex)
             {
                 return NotFound(new { Message = ex.Message });
+            }
+        }
+        [HttpGet("with-total-expenses")]
+        public async Task<ActionResult<List<BudgetWithTotalExpensesDTO>>> GetBudgetsWithTotalExpensesForLoggedInUser()
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == "userId" || c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "User is not authorized." });
+            }
+
+            try
+            {
+                var budgets = await _budgetService.GetBudgetsWithTotalExpensesAsync(userId);
+                return Ok(budgets);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
         }
     }

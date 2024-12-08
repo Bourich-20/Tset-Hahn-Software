@@ -7,6 +7,7 @@ import { AddExpenseComponent } from '../app/features/components/add-expense/add-
 import { ViewExpensesComponent } from '../app/features/components/view-expenses/view-expenses.component';
 import { BudgetProgressComponent } from '../app/features/components/budget-progress/budget-progress.component';
 import { SettingsComponent } from '../app/features/components/settings/settings.component';
+import { BudgetComponent } from './features/components/budget/budget.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -19,9 +20,10 @@ export const routes: Routes = [
       { path: 'view-expenses', component: ViewExpensesComponent },
       { path: 'budget-progress', component: BudgetProgressComponent },
       { path: 'settings', component: SettingsComponent },
+      { path: 'budgets', component: BudgetComponent },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
 
 @NgModule({
