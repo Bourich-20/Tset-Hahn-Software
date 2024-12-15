@@ -1,8 +1,6 @@
 <div class="max-w-full mx-auto p-6 bg-white shadow-lg rounded-lg mt-10">
-    <!-- Expense Search Form -->
     <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()">
       <div class="flex justify-between items-center mb-6 space-x-4">
-        <!-- Category Selector -->
         <div class="w-1/3">
           <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
           <select
@@ -17,7 +15,6 @@
           </div>
         </div>
   
-        <!-- Start Date Picker -->
         <div class="w-1/3">
           <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
           <input 
@@ -31,7 +28,6 @@
           </div>
         </div>
   
-        <!-- Submit Button -->
         <div class="w-1/3">
           <button 
             type="submit" 
@@ -44,7 +40,6 @@
       </div>
     </form>
   
-    <!-- Expenses Table -->
     <div class="mt-8" *ngIf="expenses.length">
       <h3 class="text-xl font-semibold text-blue-700">Expenses</h3>
       <table class="min-w-full mt-4 bg-white shadow-md rounded-lg">
@@ -75,9 +70,7 @@
         </tbody>
       </table>
   
-      <!-- Pagination -->
       <div class="flex justify-center mt-6">
-        <!-- Previous Page Button -->
         <button 
           *ngIf="currentPage > 1"
           (click)="onPageChange(currentPage - 1)" 
@@ -86,7 +79,6 @@
           Previous
         </button>
   
-        <!-- Page Number Buttons -->
         <button 
           *ngFor="let page of pages" 
           (click)="onPageChange(page)" 
@@ -96,7 +88,6 @@
           {{ page }}
         </button>
   
-        <!-- Next Page Button -->
         <button 
           *ngIf="currentPage < totalPages"
           (click)="onPageChange(currentPage + 1)" 
